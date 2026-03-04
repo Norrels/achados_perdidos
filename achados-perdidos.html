@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <title>Achados & Perdidos</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Roboto:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      :root {
+        --bg: #f7f4ef;
+        --surface: #ffffff;
+        --card: #ffffff;
+        --ink: #1c1a17;
+        --muted: #9a9488;
+        --border: #e4e0d8;
+        --amber: #e8a020;
+        --amber-lt: #fdf3e0;
+        --green: #2a9e6e;
+        --green-lt: #e4f5ee;
+        --red: #d94f3d;
+        --red-lt: #fdecea;
+        --tag-bg: #ede9e2;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: "Roboto", sans-serif;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        overflow-x: hidden;
+      }
+
+      /* Remove scrollbar */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      * {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* paper texture */
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image: repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 27px,
+          rgba(0, 0, 0, 0.025) 28px
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .app {
+        width: 100%;
+        max-width: 390px;
+        min-height: 100vh;
+        position: relative;
+        z-index: 1;
+        overflow: hidden;
+      }
+
+      /* ── SCREEN SYSTEM ── */
+      .screen {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        background: var(--bg);
+        transition:
+          transform 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 0.38s ease;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .screen.hidden-right {
+        transform: translateX(100%);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .screen.hidden-left {
+        transform: translateX(-8%);
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* ── STATUS BAR ── */
+      .status {
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 22px 0;
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.8px;
+        flex-shrink: 0;
+      }
+
+      /* ══════════════════════════════
+   SCREEN 1 — LIST
+══════════════════════════════ */
+
+      /* Header */
+      .list-header {
+        padding: 16px 20px 0;
+        flex-shrink: 0;
+      }
+
+      .list-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 4px;
+      }
+
+      .list-title {
+        font-family: "Roboto", sans-serif;
+        font-size: 26px;
+        line-height: 1.05;
+        color: var(--ink);
+        font-weight: 400;
+        letter-spacing: -0.5px;
+      }
+
+      .list-title em {
+        font-style: italic;
+        color: var(--red);
+      }
+
+      .add-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--ink);
+        border: none;
+        color: #fff;
+        font-size: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        margin-top: 6px;
+        flex-shrink: 0;
+        transition:
+          background 0.15s,
+          transform 0.15s;
+        font-weight: 300;
+        line-height: 1;
+      }
+      .add-btn:active {
+        transform: rotate(90deg) scale(0.93);
+      }
+
+      .list-subtitle {
+        font-size: 13px;
+        color: var(--muted);
+        font-weight: 500;
+        margin-bottom: 18px;
+      }
+
+      /* Search */
+      .search-wrap {
+        position: relative;
+        margin-bottom: 16px;
+      }
+
+      .search-input {
+        width: 100%;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 16px 12px 42px;
+        font-family: "Roboto", sans-serif;
+        font-size: 14px;
+        color: var(--ink);
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .search-input::placeholder {
+        color: var(--muted);
+      }
+
+      .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--muted);
+      }
+
+      /* Filter chips */
+      .filters {
+        display: flex;
+        gap: 6px;
+        padding-bottom: 16px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .filters::-webkit-scrollbar {
+        display: none;
+      }
+
+      .chip {
+        flex-shrink: 0;
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1.5px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+
+      .chip.active {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: #fff;
+      }
+
+      /* Divider */
+      .list-divider {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 20px 12px;
+        flex-shrink: 0;
+      }
+
+      .divider-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .divider-line {
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+      }
+
+      /* ── FLATLIST ── */
+      .flatlist {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+        padding: 0 16px 24px;
+        flex: 1;
+      }
+
+      .item-card {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition:
+          transform 0.15s,
+          box-shadow 0.15s,
+          border-color 0.15s;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 8px;
+      }
+
+      .item-card:active {
+        transform: scale(0.98);
+      }
+
+      .item-icon-wrap {
+        width: 52px;
+        height: 52px;
+        border-radius: 12px;
+        background: var(--tag-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 26px;
+        position: relative;
+      }
+
+      .item-found-dot {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        border: 2px solid var(--surface);
+      }
+
+      .item-found-dot.lost {
+        background: var(--red);
+      }
+      .item-found-dot.found {
+        background: var(--green);
+      }
+      .item-found-dot.claimed {
+        background: var(--amber);
+      }
+
+      .item-body {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .item-name {
+        font-family: "Roboto", sans-serif;
+        font-size: 17px;
+        color: var(--ink);
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .item-meta {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .item-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .item-tag {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        padding: 3px 9px;
+        border-radius: 20px;
+        text-transform: uppercase;
+      }
+
+      .item-tag.lost {
+        background: var(--red-lt);
+        color: var(--red);
+      }
+      .item-tag.found {
+        background: var(--green-lt);
+        color: var(--green);
+      }
+      .item-tag.claimed {
+        background: var(--amber-lt);
+        color: var(--amber);
+      }
+
+      .item-date {
+        font-size: 11px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .item-chevron {
+        color: var(--border);
+        font-size: 16px;
+        transition: color 0.15s;
+      }
+
+      /* ══════════════════════════════
+   SCREEN 2 — DETAIL
+══════════════════════════════ */
+
+      .detail-header {
+        padding: 16px 20px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+      }
+
+      .back-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 18px;
+        color: var(--ink);
+        transition:
+          background 0.15s,
+          border-color 0.15s;
+        flex-shrink: 0;
+      }
+
+      .detail-header-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 0.5px;
+      }
+
+      /* Hero image area */
+      .detail-hero {
+        margin: 20px 20px 0;
+        background: var(--tag-bg);
+        border-radius: 20px;
+        height: 190px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 80px;
+        position: relative;
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+
+      .detail-hero::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to bottom,
+          transparent 50%,
+          rgba(0, 0, 0, 0.06) 100%
+        );
+        border-radius: 20px;
+      }
+
+      .detail-status-pill {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        padding: 5px 14px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        z-index: 2;
+      }
+
+      .detail-status-pill.lost {
+        background: var(--red);
+        color: #fff;
+      }
+      .detail-status-pill.found {
+        background: var(--green);
+        color: #fff;
+      }
+      .detail-status-pill.claimed {
+        background: var(--amber);
+        color: #fff;
+      }
+
+      /* Detail content */
+      .detail-content {
+        padding: 20px;
+        flex: 1;
+      }
+
+      .detail-name {
+        font-family: "Roboto", sans-serif;
+        font-size: 30px;
+        line-height: 1.1;
+        color: var(--ink);
+        margin-bottom: 6px;
+        letter-spacing: -0.3px;
+      }
+
+      .detail-posted {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 500;
+        margin-bottom: 20px;
+      }
+
+      /* Info grid */
+      .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .info-cell {
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+
+      .info-cell-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+      }
+
+      .info-cell-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ink);
+      }
+
+      /* Description */
+      .detail-desc-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--muted);
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+      }
+
+      .detail-desc {
+        font-size: 14px;
+        color: var(--ink);
+        line-height: 1.65;
+        font-weight: 400;
+        margin-bottom: 20px;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+      }
+
+      /* Reporter */
+      .reporter-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 20px;
+      }
+
+      .reporter-av {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--tag-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+        object-fit: cover;
+      }
+
+      .reporter-info {
+      }
+      .reporter-name {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+      .reporter-role {
+        font-size: 12px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      /* CTA buttons */
+      .cta-group {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 32px;
+      }
+
+      .cta-primary {
+        width: 100%;
+        padding: 15px;
+        border-radius: 12px;
+        background: var(--ink);
+        border: none;
+        color: #fff;
+        font-family: "Roboto", sans-serif;
+        font-size: 15px;
+        font-weight: 800;
+        cursor: pointer;
+        transition:
+          background 0.15s,
+          transform 0.1s;
+        letter-spacing: 0.3px;
+      }
+      .cta-primary:active {
+        transform: scale(0.98);
+      }
+
+      .cta-secondary {
+        width: 100%;
+        padding: 14px;
+        border-radius: 12px;
+        background: transparent;
+        border: 1.5px solid var(--border);
+        color: var(--muted);
+        font-family: "Roboto", sans-serif;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+
+      /* ── ANIMATIONS ── */
+      @keyframes slide-up {
+        from {
+          opacity: 0;
+          transform: translateY(14px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .item-card:nth-child(1) {
+        animation: slide-up 0.3s 0.04s ease both;
+      }
+      .item-card:nth-child(2) {
+        animation: slide-up 0.3s 0.1s ease both;
+      }
+      .item-card:nth-child(3) {
+        animation: slide-up 0.3s 0.16s ease both;
+      }
+      .item-card:nth-child(4) {
+        animation: slide-up 0.3s 0.22s ease both;
+      }
+      .item-card:nth-child(5) {
+        animation: slide-up 0.3s 0.28s ease both;
+      }
+      .item-card:nth-child(6) {
+        animation: slide-up 0.3s 0.34s ease both;
+      }
+
+      .detail-hero {
+        animation: slide-up 0.35s 0.05s ease both;
+      }
+      .detail-name {
+        animation: slide-up 0.35s 0.1s ease both;
+      }
+      .info-grid {
+        animation: slide-up 0.35s 0.14s ease both;
+      }
+      .detail-desc {
+        animation: slide-up 0.35s 0.18s ease both;
+      }
+      .reporter-row {
+        animation: slide-up 0.35s 0.22s ease both;
+      }
+      .cta-group {
+        animation: slide-up 0.35s 0.26s ease both;
+      }
+
+      /* claimed state */
+      .cta-primary.claimed-state {
+        background: var(--green);
+        cursor: default;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- ══════════════ SCREEN 1: LIST ══════════════ -->
+      <div class="screen" id="screen-list">
+        <div class="status">
+          <span>09:41</span>
+          <span>5G &nbsp; 88%</span>
+        </div>
+
+        <div class="list-header">
+          <div class="list-title-row">
+            <div class="list-title">Achados<br />& <em>Perdidos</em></div>
+            <button class="add-btn" title="Reportar item">+</button>
+          </div>
+          <div class="list-subtitle">
+            SENAI - Ricardo Lerner · 12 itens ativos
+          </div>
+
+          <div class="filters">
+            <div class="chip active" onclick="setFilter('todos', this)">
+              Todos
+            </div>
+            <div class="chip" onclick="setFilter('perdido', this)">
+              Perdidos
+            </div>
+            <div class="chip" onclick="setFilter('encontrado', this)">
+              Encontrados
+            </div>
+            <div class="chip" onclick="setFilter('retirado', this)">
+              Retirados
+            </div>
+          </div>
+        </div>
+
+        <div class="list-divider">
+          <span class="divider-label">Esta semana</span>
+          <div class="divider-line"></div>
+        </div>
+
+        <div class="flatlist" id="flatlist">
+          <div class="item-card" onclick="openDetail(0)" data-status="perdido">
+            <div class="item-icon-wrap">
+              🎒
+              <div class="item-found-dot lost"></div>
+            </div>
+            <div class="item-body">
+              <div class="item-name">Mochila preta Adidas</div>
+              <div class="item-meta">Quadra de esportes · ADM</div>
+            </div>
+            <div class="item-right">
+              <div class="item-tag lost">Perdido</div>
+              <div class="item-date">hoje</div>
+            </div>
+            <div class="item-chevron">›</div>
+          </div>
+
+          <div
+            class="item-card"
+            onclick="openDetail(1)"
+            data-status="encontrado"
+          >
+            <div class="item-icon-wrap">
+              🔑
+              <div class="item-found-dot found"></div>
+            </div>
+            <div class="item-body">
+              <div class="item-name">Chaveiro com chaves</div>
+              <div class="item-meta">Biblioteca · encontrado</div>
+            </div>
+            <div class="item-right">
+              <div class="item-tag found">Encontrado</div>
+              <div class="item-date">hoje</div>
+            </div>
+            <div class="item-chevron">›</div>
+          </div>
+
+          <div class="item-card" onclick="openDetail(2)" data-status="perdido">
+            <div class="item-icon-wrap">
+              📱
+              <div class="item-found-dot lost"></div>
+            </div>
+            <div class="item-body">
+              <div class="item-name">Fone de ouvido JBL</div>
+              <div class="item-meta">Sala 12 · Meca</div>
+            </div>
+            <div class="item-right">
+              <div class="item-tag lost">Perdido</div>
+              <div class="item-date">ontem</div>
+            </div>
+            <div class="item-chevron">›</div>
+          </div>
+
+          <div
+            class="item-card"
+            onclick="openDetail(3)"
+            data-status="encontrado"
+          >
+            <div class="item-icon-wrap">
+              📓
+              <div class="item-found-dot found"></div>
+            </div>
+            <div class="item-body">
+              <div class="item-name">Caderno de Quimica</div>
+              <div class="item-meta">Cantina · capa verde</div>
+            </div>
+            <div class="item-right">
+              <div class="item-tag found">Encontrado</div>
+              <div class="item-date">ontem</div>
+            </div>
+            <div class="item-chevron">›</div>
+          </div>
+
+          <div class="item-card" onclick="openDetail(4)" data-status="retirado">
+            <div class="item-icon-wrap">
+              👓
+              <div class="item-found-dot claimed"></div>
+            </div>
+            <div class="item-body">
+              <div class="item-name">Oculos de grau</div>
+              <div class="item-meta">Secretaria · retirado</div>
+            </div>
+            <div class="item-right">
+              <div class="item-tag claimed">Retirado</div>
+              <div class="item-date">ter</div>
+            </div>
+            <div class="item-chevron">›</div>
+          </div>
+
+          <div class="item-card" onclick="openDetail(5)" data-status="perdido">
+            <div class="item-icon-wrap">
+              🧥
+              <div class="item-found-dot lost"></div>
+            </div>
+            <div class="item-body">
+              <div class="item-name">Jaqueta cinza Nike</div>
+              <div class="item-meta">Corredor bloco B · tamanho M</div>
+            </div>
+            <div class="item-right">
+              <div class="item-tag lost">Perdido</div>
+              <div class="item-date">seg</div>
+            </div>
+            <div class="item-chevron">›</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════ SCREEN 2: DETAIL ══════════════ -->
+      <div class="screen hidden-right" id="screen-detail">
+        <div class="status">
+          <span>09:41</span>
+          <span>5G &nbsp; 88%</span>
+        </div>
+
+        <div class="detail-header">
+          <button class="back-btn" onclick="goBack()">‹</button>
+          <div class="detail-header-title" id="detail-header-label">
+            Detalhe do item
+          </div>
+        </div>
+
+        <div class="detail-hero" id="detail-icon-hero">
+          <span id="detail-hero-icon" style="position: relative; z-index: 1"
+            >🎒</span
+          >
+          <div class="detail-status-pill lost" id="detail-status-pill">
+            Perdido
+          </div>
+        </div>
+
+        <div class="detail-content">
+          <div class="detail-name" id="detail-name">Mochila preta Adidas</div>
+          <div class="detail-posted" id="detail-posted">
+            Reportado por Ana Clara · hoje as 08:32
+          </div>
+
+          <div class="info-grid">
+            <div class="info-cell">
+              <div class="info-cell-label">Local</div>
+              <div class="info-cell-value" id="detail-local">Quadra</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-cell-label">Turma</div>
+              <div class="info-cell-value" id="detail-turma">2ºB</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-cell-label">Data</div>
+              <div class="info-cell-value" id="detail-data">Hoje</div>
+            </div>
+            <div class="info-cell">
+              <div class="info-cell-label">Cor / Marca</div>
+              <div class="info-cell-value" id="detail-cor">Preta</div>
+            </div>
+          </div>
+
+          <div class="detail-desc-label">Descricao</div>
+          <div class="detail-desc" id="detail-desc">
+            Mochila preta da Adidas, tamanho medio, com um chaveiro de
+            astronauta amarrado no ziper. Dentro tem cadernos de matematica e um
+            estojo azul. Esqueci na arquibancada depois do treino de vôlei.
+          </div>
+
+          <div class="reporter-row">
+            <img
+              class="reporter-av"
+              id="detail-av"
+              src="https://i.pravatar.cc/80?img=1"
+              alt="Avatar"
+            />
+            <div class="reporter-info">
+              <div class="reporter-name" id="detail-reporter">
+                Ana Clara Souza
+              </div>
+              <div class="reporter-role" id="detail-role">
+                Aluna · DS · reportou o item
+              </div>
+            </div>
+          </div>
+
+          <div class="cta-group">
+            <button class="cta-primary" id="cta-main" onclick="claimItem()">
+              Esse e meu — Reivindicar
+            </button>
+            <button class="cta-secondary" onclick="goBack()">
+              Voltar para a lista
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const items = [
+        {
+          icon: "🎒",
+          status: "lost",
+          name: "Mochila preta Adidas",
+          posted: "Reportado por Ana Clara · hoje as 08:32",
+          local: "Quadra",
+          turma: "ADM",
+          data: "Hoje",
+          cor: "Preta / Adidas",
+          desc: "Mochila preta da Adidas, tamanho medio, com um chaveiro de astronauta amarrado no ziper. Dentro tem cadernos de matematica e um estojo azul. Esqueci na arquibancada depois do treino de vôlei.",
+          reporter: "Ana Clara Souza",
+          role: "Aluna · ADM · reportou o item",
+          av: "https://i.pravatar.cc/80?img=1",
+          cta: "Esse e meu — Reivindicar",
+        },
+        {
+          icon: "🔑",
+          status: "found",
+          name: "Chaveiro com chaves",
+          posted: "Encontrado por Biel Santos · hoje as 10:15",
+          local: "Biblioteca",
+          turma: "DS",
+          data: "Hoje",
+          cor: "Metal / plastico",
+          desc: "Encontrei um chaveiro com tres chaves e um enfeite de bolinha vermelha perto das mesas do fundo da biblioteca. Esta na secretaria aguardando o dono.",
+          reporter: "Gabriel Santos",
+          role: "Aluno · DS · encontrou o item",
+          av: "https://i.pravatar.cc/80?img=12",
+          cta: "São minhas chaves — Reivindicar",
+        },
+        {
+          icon: "📱",
+          status: "lost",
+          name: "Fone de ouvido JBL",
+          posted: "Reportado por Luisa Ferreira · ontem as 15:40",
+          local: "Sala 12",
+          turma: "Meca",
+          data: "Ontem",
+          cor: "Preto / JBL",
+          desc: "Fone JBL preto, sem fio, modelo Tune 510. Acredito ter deixado em cima da carteira quando toquei o sinal. Tem uma pequena marca de caneta na almofada esquerda.",
+          reporter: "Luisa Ferreira",
+          role: "Aluna · Meca · reportou o item",
+          av: "https://i.pravatar.cc/80?img=5",
+          cta: "E meu fone — Reivindicar",
+        },
+        {
+          icon: "📓",
+          status: "found",
+          name: "Caderno de Quimica",
+          posted: "Encontrado por Pedro Lima · ontem as 12:05",
+          local: "Cantina",
+          turma: "DS",
+          data: "Ontem",
+          cor: "Verde / sem marca",
+          desc: 'Caderno de capa dura verde, cheio de anotacoes de quimica organica. Tem o nome "Mari" escrito no canto da contracapa. Esta guardado com a inspetora Claudia.',
+          reporter: "Pedro Lima",
+          role: "Aluno · CAI - DS · encontrou o item",
+          av: "https://i.pravatar.cc/80?img=15",
+          cta: "E meu caderno — Reivindicar",
+        },
+        {
+          icon: "👓",
+          status: "claimed",
+          name: "Oculos de grau",
+          posted: "Retirado por Vitoria Alves · terca as 14:20",
+          local: "Secretaria",
+          turma: "DS",
+          data: "Terca",
+          cor: "Armacao azul",
+          desc: "Oculos de grau com armacao azul metalica, lentes com grau. Foi encontrado no corredor do bloco B e retirado pelo dono com confirmacao na secretaria.",
+          reporter: "Vitoria Alves",
+          role: "Aluna · DS · item retirado",
+          av: "https://i.pravatar.cc/80?img=9",
+          cta: "Item ja retirado",
+        },
+        {
+          icon: "🧥",
+          status: "lost",
+          name: "Jaqueta cinza Nike",
+          posted: "Reportado por Marcos Silva · segunda as 07:55",
+          local: "Corredor",
+          turma: "Eletro",
+          data: "Segunda",
+          cor: "Cinza / Nike",
+          desc: "Jaqueta moletom cinza da Nike, tamanho M, com capuz. Tem o numero 11 bordado na manga esquerda. Estava no corredor do bloco B perto da sala dos professores.",
+          reporter: "Marcos Silva",
+          role: "Aluno · Eletro · reportou o item",
+          av: "https://i.pravatar.cc/80?img=13",
+          cta: "E minha jaqueta — Reivindicar",
+        },
+      ];
+
+      let currentFilter = "todos";
+      let claimedItems = {};
+
+      function openDetail(idx) {
+        const item = items[idx];
+
+        document.getElementById("detail-header-label").textContent =
+          item.status === "found"
+            ? "Item encontrado"
+            : item.status === "claimed"
+              ? "Item retirado"
+              : "Item perdido";
+
+        document.getElementById("detail-hero-icon").textContent = item.icon;
+        document.getElementById("detail-name").textContent = item.name;
+        document.getElementById("detail-posted").textContent = item.posted;
+        document.getElementById("detail-local").textContent = item.local;
+        document.getElementById("detail-turma").textContent = item.turma;
+        document.getElementById("detail-data").textContent = item.data;
+        document.getElementById("detail-cor").textContent = item.cor;
+        document.getElementById("detail-desc").textContent = item.desc;
+        document.getElementById("detail-reporter").textContent = item.reporter;
+        document.getElementById("detail-role").textContent = item.role;
+        document.getElementById("detail-av").src = item.av;
+
+        const pill = document.getElementById("detail-status-pill");
+        pill.className = "detail-status-pill " + item.status;
+        pill.textContent =
+          item.status === "lost"
+            ? "Perdido"
+            : item.status === "found"
+              ? "Encontrado"
+              : "Retirado";
+
+        const cta = document.getElementById("cta-main");
+        if (item.status === "claimed" || claimedItems[idx]) {
+          cta.textContent = "Item ja retirado";
+          cta.className = "cta-primary claimed-state";
+          cta.onclick = null;
+        } else {
+          cta.textContent = item.cta;
+          cta.className = "cta-primary";
+          cta.onclick = () => claimItem(idx);
+        }
+
+        document.getElementById("screen-list").classList.add("hidden-left");
+        document
+          .getElementById("screen-detail")
+          .classList.remove("hidden-right");
+        document.getElementById("screen-detail").scrollTop = 0;
+      }
+
+      function goBack() {
+        document.getElementById("screen-detail").classList.add("hidden-right");
+        document.getElementById("screen-list").classList.remove("hidden-left");
+      }
+
+      function claimItem(idx) {
+        claimedItems[idx] = true;
+        const cta = document.getElementById("cta-main");
+        cta.textContent = "Solicitacao enviada!";
+        cta.className = "cta-primary claimed-state";
+        cta.onclick = null;
+      }
+
+      function setFilter(filter, el) {
+        currentFilter = filter;
+        document
+          .querySelectorAll(".chip")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+        filterItems();
+      }
+
+      function filterItems() {
+        const query = document
+          .getElementById("search-input")
+          .value.toLowerCase();
+        document.querySelectorAll(".item-card").forEach((card, i) => {
+          const item = items[i];
+          const matchFilter =
+            currentFilter === "todos" ||
+            (currentFilter === "perdido" && item.status === "lost") ||
+            (currentFilter === "encontrado" && item.status === "found") ||
+            (currentFilter === "retirado" && item.status === "claimed");
+          const matchSearch =
+            item.name.toLowerCase().includes(query) ||
+            item.local.toLowerCase().includes(query);
+          card.style.display = matchFilter && matchSearch ? "" : "none";
+        });
+      }
+    </script>
+  </body>
+</html>
