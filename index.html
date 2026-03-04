@@ -245,30 +245,6 @@
         color: #fff;
       }
 
-      /* Divider */
-      .list-divider {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 0 20px 12px;
-        flex-shrink: 0;
-      }
-
-      .divider-label {
-        font-size: 11px;
-        font-weight: 700;
-        color: var(--muted);
-        letter-spacing: 1.5px;
-        text-transform: uppercase;
-        white-space: nowrap;
-      }
-
-      .divider-line {
-        flex: 1;
-        height: 1px;
-        background: var(--border);
-      }
-
       /* ── FLATLIST ── */
       .flatlist {
         display: flex;
@@ -283,7 +259,6 @@
         border: 1.5px solid var(--border);
         border-radius: 14px;
         padding: 14px 16px;
-        cursor: pointer;
         transition:
           transform 0.15s,
           box-shadow 0.15s,
@@ -292,10 +267,6 @@
         gap: 14px;
         align-items: center;
         margin-bottom: 8px;
-      }
-
-      .item-card:active {
-        transform: scale(0.98);
       }
 
       .item-icon-wrap {
@@ -309,26 +280,6 @@
         flex-shrink: 0;
         font-size: 26px;
         position: relative;
-      }
-
-      .item-found-dot {
-        position: absolute;
-        top: 4px;
-        right: 4px;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        border: 2px solid var(--surface);
-      }
-
-      .item-found-dot.lost {
-        background: var(--red);
-      }
-      .item-found-dot.found {
-        background: var(--green);
-      }
-      .item-found-dot.claimed {
-        background: var(--amber);
       }
 
       .item-body {
@@ -361,34 +312,6 @@
         align-items: flex-end;
         gap: 6px;
         flex-shrink: 0;
-      }
-
-      .item-tag {
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.8px;
-        padding: 3px 9px;
-        border-radius: 20px;
-        text-transform: uppercase;
-      }
-
-      .item-tag.lost {
-        background: var(--red-lt);
-        color: var(--red);
-      }
-      .item-tag.found {
-        background: var(--green-lt);
-        color: var(--green);
-      }
-      .item-tag.claimed {
-        background: var(--amber-lt);
-        color: var(--amber);
-      }
-
-      .item-date {
-        font-size: 11px;
-        color: var(--muted);
-        font-weight: 500;
       }
 
       .item-chevron {
@@ -731,59 +654,30 @@
           </div>
         </div>
 
-        <div class="list-divider">
-          <span class="divider-label">Esta semana</span>
-        </div>
-
         <div class="flatlist" id="flatlist">
-          <div class="item-card" onclick="openDetail(0)" data-status="perdido">
-            <div class="item-icon-wrap">
-              🎒
-              <div class="item-found-dot lost"></div>
-            </div>
+          <div class="item-card" data-status="perdido">
+            <div class="item-icon-wrap">🎒</div>
             <div class="item-body">
               <div class="item-name">Mochila preta Adidas</div>
               <div class="item-meta">Quadra de esportes · ADM</div>
             </div>
-            <div class="item-right">
-              <div class="item-tag lost">Perdido</div>
-              <div class="item-date">hoje</div>
-            </div>
             <div class="item-chevron">›</div>
           </div>
 
-          <div
-            class="item-card"
-            onclick="openDetail(1)"
-            data-status="encontrado"
-          >
-            <div class="item-icon-wrap">
-              🔑
-              <div class="item-found-dot found"></div>
-            </div>
+          <div class="item-card" data-status="encontrado">
+            <div class="item-icon-wrap">🔑</div>
             <div class="item-body">
               <div class="item-name">Chaveiro com chaves</div>
               <div class="item-meta">Biblioteca · encontrado</div>
             </div>
-            <div class="item-right">
-              <div class="item-tag found">Encontrado</div>
-              <div class="item-date">hoje</div>
-            </div>
             <div class="item-chevron">›</div>
           </div>
 
-          <div class="item-card" onclick="openDetail(2)" data-status="perdido">
-            <div class="item-icon-wrap">
-              📱
-              <div class="item-found-dot lost"></div>
-            </div>
+          <div class="item-card" data-status="perdido">
+            <div class="item-icon-wrap">📱</div>
             <div class="item-body">
               <div class="item-name">Fone de ouvido JBL</div>
               <div class="item-meta">Sala 12 · Meca</div>
-            </div>
-            <div class="item-right">
-              <div class="item-tag lost">Perdido</div>
-              <div class="item-date">ontem</div>
             </div>
             <div class="item-chevron">›</div>
           </div>
@@ -935,7 +829,37 @@
           role: "Aluno · CAI - DS · encontrou o item",
           av: "https://i.pravatar.cc/80?img=15",
           cta: "E meu caderno — Reivindicar",
-        }
+        },
+        {
+          icon: "👓",
+          status: "claimed",
+          name: "Oculos de grau",
+          posted: "Retirado por Vitoria Alves · terca as 14:20",
+          local: "Secretaria",
+          turma: "DS",
+          data: "Terca",
+          cor: "Armacao azul",
+          desc: "Oculos de grau com armacao azul metalica, lentes com grau. Foi encontrado no corredor do bloco B e retirado pelo dono com confirmacao na secretaria.",
+          reporter: "Vitoria Alves",
+          role: "Aluna · DS · item retirado",
+          av: "https://i.pravatar.cc/80?img=9",
+          cta: "Item ja retirado",
+        },
+        {
+          icon: "🧥",
+          status: "lost",
+          name: "Jaqueta cinza Nike",
+          posted: "Reportado por Marcos Silva · segunda as 07:55",
+          local: "Corredor",
+          turma: "Eletro",
+          data: "Segunda",
+          cor: "Cinza / Nike",
+          desc: "Jaqueta moletom cinza da Nike, tamanho M, com capuz. Tem o numero 11 bordado na manga esquerda. Estava no corredor do bloco B perto da sala dos professores.",
+          reporter: "Marcos Silva",
+          role: "Aluno · Eletro · reportou o item",
+          av: "https://i.pravatar.cc/80?img=13",
+          cta: "E minha jaqueta — Reivindicar",
+        },
       ];
 
       let currentFilter = "todos";
